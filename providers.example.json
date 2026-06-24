@@ -1,0 +1,44 @@
+{
+  "providers": [
+    {
+      "id": "openrouter-qwen",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "apiKeyEnv": "OPENROUTER_API_KEY",
+      "model": "qwen/qwen3-coder:free",
+      "priority": 10,
+      "cooldownMs": 60000
+    },
+    {
+      "id": "groq-llama",
+      "baseUrl": "https://api.groq.com/openai/v1",
+      "apiKeyEnv": "GROQ_API_KEY",
+      "model": "llama-3.3-70b-versatile",
+      "priority": 20,
+      "cooldownMs": 60000
+    },
+    {
+      "id": "nvidia-nemotron",
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "NVIDIA_API_KEY",
+      "model": "nvidia/nemotron-3-super-120b-a12b",
+      "priority": 30,
+      "cooldownMs": 60000
+    },
+    {
+      "id": "cerebras-gpt-oss",
+      "baseUrl": "https://api.cerebras.ai/v1",
+      "apiKeyEnv": "CEREBRAS_API_KEY",
+      "model": "gpt-oss-120b",
+      "priority": 40,
+      "cooldownMs": 60000
+    },
+    {
+      "id": "mistral",
+      "baseUrl": "https://api.mistral.ai/v1",
+      "apiKeyEnv": "MISTRAL_API_KEY",
+      "model": "mistral-small-latest",
+      "priority": 50,
+      "cooldownMs": 60000
+    }
+  ]
+}

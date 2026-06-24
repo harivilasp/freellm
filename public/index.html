@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Bring your own free LLM API keys and call them through one resilient OpenAI-compatible endpoint."
+    />
+    <title>Free LLM Router</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Free LLM Router home">
+        <span class="brand-mark">F</span>
+        <span>Free LLM Router</span>
+      </a>
+      <div class="topbar-actions">
+        <span id="auth-user" class="local-badge" hidden></span>
+        <button id="sign-out" class="ghost compact-button" type="button" hidden>
+          Sign out
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section id="auth-gate" class="auth-gate">
+        <div class="hero-copy">
+          <p class="eyebrow">Free LLM Router</p>
+          <h1>Sign in before creating your router.</h1>
+          <p class="lede">
+            Your login keeps the router attached to your account so it remains
+            available across browsers and devices.
+          </p>
+        </div>
+        <div id="clerk-sign-in" class="auth-card">
+          <p>Loading secure sign-in…</p>
+        </div>
+      </section>
+
+      <section id="welcome" class="welcome" hidden>
+        <div class="hero-copy">
+          <p class="eyebrow">One endpoint. Your provider keys.</p>
+          <h1>Keep your app running when a free tier runs out.</h1>
+          <p class="lede">
+            Add keys from multiple LLM providers. The router tries them in order
+            and automatically fails over on rate limits or outages.
+          </p>
+        </div>
+
+        <div class="start-card">
+          <div>
+            <p class="step">New router</p>
+            <h2>Create your private router key</h2>
+            <p>You will see the full key once. Store it like any other secret.</p>
+          </div>
+          <form id="create-form">
+            <label for="account-name">Router name</label>
+            <input
+              id="account-name"
+              name="name"
+              maxlength="80"
+              placeholder="My development router"
+              autocomplete="off"
+            />
+            <button class="primary" type="submit">Create router</button>
+          </form>
+
+        </div>
+      </section>
+
+      <section id="dashboard" class="dashboard" hidden>
+        <div class="dashboard-heading">
+          <div>
+            <p class="eyebrow">Router dashboard</p>
+            <h1 id="router-name">My router</h1>
+            <p class="lede compact">
+              Add more providers to increase capacity and improve failover.
+            </p>
+          </div>
+          <button id="disconnect" class="ghost" type="button">Sign out</button>
+        </div>
+
+        <div class="summary-grid">
+          <article class="summary-card accent">
+            <span class="summary-label">Providers connected</span>
+            <strong id="provider-count">0</strong>
+            <span id="provider-summary">Add your first provider</span>
+          </article>
+          <article class="summary-card">
+            <span class="summary-label">OpenAI base URL</span>
+            <code id="base-url"></code>
+            <button class="copy-button" data-copy="base-url" type="button">Copy</button>
+          </article>
+          <article class="summary-card">
+            <span class="summary-label">Router key</span>
+            <code id="router-key-preview"></code>
+            <button class="copy-button" data-copy-key type="button">Copy</button>
+          </article>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <h2>Provider keys</h2>
+            <p>Keys stay on this server and are never shown again after saving.</p>
+          </div>
+          <label class="search">
+            <span class="sr-only">Search providers</span>
+            <input id="provider-search" type="search" placeholder="Search providers" />
+          </label>
+        </div>
+
+        <div id="provider-list" class="provider-grid" aria-live="polite"></div>
+
+        <section class="tester">
+          <div class="tester-copy">
+            <p class="eyebrow">Live check</p>
+            <h2>Test your router</h2>
+            <p>
+              Send a real request through your connected providers before using
+              the endpoint in another app.
+            </p>
+          </div>
+          <form id="test-form" class="tester-form">
+            <label for="test-prompt">Prompt</label>
+            <textarea
+              id="test-prompt"
+              rows="4"
+              maxlength="4000"
+              required
+            >Reply with exactly: Router is working.</textarea>
+            <div class="tester-actions">
+              <span id="test-hint">Connect a provider to run a test.</span>
+              <button id="test-button" class="primary" type="submit">
+                Send test request
+              </button>
+            </div>
+          </form>
+          <div id="test-result" class="test-result" aria-live="polite" hidden>
+            <div class="test-result-heading">
+              <strong id="test-status">Response</strong>
+              <span id="test-provider"></span>
+            </div>
+            <pre><code id="test-output"></code></pre>
+          </div>
+        </section>
+
+        <section class="prompt-builder">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Hosted prompt apps</p>
+              <h2>Create a prompt link</h2>
+              <p>
+                Define required and optional inputs once. Anyone with the prompt
+                ID can run it using any valid router key.
+              </p>
+            </div>
+          </div>
+
+          <form id="prompt-form" class="prompt-form">
+            <div class="form-grid">
+              <label>
+                Prompt name
+                <input id="prompt-title" maxlength="80" placeholder="Email writer" required />
+              </label>
+              <label>
+                Short description
+                <input
+                  id="prompt-description"
+                  maxlength="300"
+                  placeholder="Generate a polished email from a few inputs"
+                />
+              </label>
+            </div>
+            <label>
+              Prompt template
+              <textarea
+                id="prompt-template"
+                rows="7"
+                maxlength="12000"
+                placeholder="Write a {{tone}} email to {{recipient}} about {{topic}}. {{extra_instructions}}"
+                required
+              ></textarea>
+            </label>
+            <div class="form-grid">
+              <label>
+                Required inputs
+                <input id="prompt-required-inputs" placeholder="tone, recipient, topic" />
+              </label>
+              <label>
+                Optional inputs
+                <input id="prompt-optional-inputs" placeholder="extra_instructions" />
+              </label>
+            </div>
+            <div class="prompt-form-footer">
+              <span>
+                Use lowercase names in the template, such as
+                <code>{{recipient}}</code>.
+              </span>
+              <button class="primary" type="submit">Create prompt link</button>
+            </div>
+          </form>
+
+          <div id="prompt-list" class="prompt-list" aria-live="polite"></div>
+        </section>
+
+        <section class="usage">
+          <div>
+            <p class="eyebrow">Use the router</p>
+            <h2>Point any OpenAI client at one URL</h2>
+          </div>
+          <pre><code id="usage-code"></code></pre>
+          <button class="copy-button code-copy" data-copy="usage-code" type="button">
+            Copy example
+          </button>
+        </section>
+      </section>
+    </main>
+
+    <div id="key-modal" class="modal" hidden>
+      <div class="modal-backdrop" data-close-modal></div>
+      <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" type="button" data-close-modal aria-label="Close">×</button>
+        <p class="step">Provider credential</p>
+        <h2 id="modal-title">Add API key</h2>
+        <p id="modal-description"></p>
+        <form id="key-form">
+          <input id="modal-provider-id" type="hidden" />
+          <label for="provider-key">API key</label>
+          <input
+            id="provider-key"
+            type="password"
+            autocomplete="off"
+            placeholder="Paste the provider API key"
+            required
+          />
+          <div class="modal-actions">
+            <a id="provider-website" target="_blank" rel="noreferrer">Get a key ↗</a>
+            <button class="primary" type="submit">Save key</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

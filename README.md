@@ -15,8 +15,9 @@ Provider ideas and free-tier details are based on
 
 ## How it works
 
-1. A user opens the dashboard and creates a router.
-2. The server generates a high-entropy key beginning with `flm_`.
+1. A user signs in with Clerk (including Google OAuth).
+2. The user creates a router; the server generates a high-entropy key beginning
+   with `flm_` and attaches it to the signed-in account.
 3. The user adds API keys from Groq, OpenRouter, Cerebras, NVIDIA, Mistral, or
    another configured provider.
 4. The user's application sends its router key to the local `/v1` endpoint.
@@ -24,8 +25,8 @@ Provider ideas and free-tier details are based on
    priority order until one succeeds.
 
 Provider keys are never returned by the management API after they are saved.
-Router keys are stored as SHA-256 hashes. Provider keys are stored in a
-permission-restricted local file.
+Router keys are stored as SHA-256 hashes. Hosted provider keys are encrypted
+with AES-256-GCM before being stored in managed Redis.
 
 ## Run locally
 
@@ -45,30 +46,20 @@ Data is stored in `.freellm/accounts.json`, which is excluded from Git. Set
 ACCOUNTS_PATH=/secure/path/accounts.json npm start
 ```
 
-## Create a router
+For hosted deployments, configure Upstash Redis using either the
+`KV_REST_API_URL` / `KV_REST_API_TOKEN` or
+`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` variables. Also set
+`ACCOUNT_ENCRYPTION_KEY` to a 32-byte base64url secret.
 
-Use the website, or create one directly:
+Configure Clerk with:
 
-```bash
-curl http://localhost:8787/api/accounts \
-  -H "Content-Type: application/json" \
-  -d '{"name":"My development router"}'
+```text
+CLERK_SECRET_KEY
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ```
 
-The response includes the full router key once:
-
-```json
-{
-  "account": {
-    "id": "account-id",
-    "name": "My development router",
-    "routerKeyPrefix": "flm_example",
-    "createdAt": "2026-06-24T00:00:00.000Z",
-    "configuredProviderIds": []
-  },
-  "routerKey": "flm_save_this_secret"
-}
-```
+The dashboard requires sign-in before router creation and recovers the user's
+encrypted router key on later sessions.
 
 ## Add a provider key
 
@@ -123,6 +114,16 @@ curl http://localhost:8787/v1/chat/completions \
 The `x-free-llm-provider` response header identifies the provider that handled
 the request. Streaming responses are forwarded without buffering.
 
+## Hosted prompt apps
+
+Signed-in router owners can create prompt templates containing variables such
+as `{{topic}}`, then mark each input required or optional. Each template gets a
+link such as `/p/prm_...`.
+
+Running a prompt requires its prompt ID, any valid router key, and an inputs
+object. All variables are validated before any provider request is made.
+Invalid, missing, or unexpected inputs return HTTP 422 without calling an LLM.
+
 ## Provider configuration
 
 Providers are defined in `providers.json`:
@@ -153,19 +154,12 @@ returns HTTP 503 with sanitized attempt details.
 
 ## Security and production deployment
 
-The included JSON account store is intended for local use and small
-self-hosted deployments. Provider keys are plaintext at rest, protected only
-by filesystem permissions.
+Hosted deployments use managed Redis and require encrypted provider
+credentials. Clerk sign-in protects router management and allows the encrypted
+router key to be recovered across browsers. The router key remains the
+credential for OpenAI-compatible `/v1` calls and hosted prompt execution.
 
-Before offering this as a public hosted service:
-
-- store accounts and encrypted provider credentials in a database or secret
-  manager;
-- add account login, recovery, router-key rotation, and revocation;
-- add TLS, request rate limits, audit logs, CSRF protection, and abuse controls;
-- isolate tenant state and cache router cooldowns per account;
-- validate provider ownership and applicable provider terms;
-- never log authorization headers, router keys, provider keys, or prompt data.
+Never log authorization headers, router keys, provider keys, or prompt data.
 
 ## Development
 

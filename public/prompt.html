@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Run a hosted prompt using a Free LLM Router key."
+    />
+    <title>Prompt App · Free LLM Router</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/prompt.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Free LLM Router home">
+        <span class="brand-mark">F</span>
+        <span>Free LLM Router</span>
+      </a>
+      <span class="local-badge">Hosted prompt</span>
+    </header>
+
+    <main class="prompt-page">
+      <section id="prompt-loading" class="public-prompt-card">
+        <p>Loading prompt…</p>
+      </section>
+
+      <section id="prompt-app" class="public-prompt-card" hidden>
+        <p class="eyebrow">Prompt app</p>
+        <h1 id="public-prompt-title">Prompt</h1>
+        <p id="public-prompt-description" class="lede"></p>
+
+        <form id="public-prompt-form">
+          <label for="public-router-key">Router key</label>
+          <input
+            id="public-router-key"
+            type="password"
+            placeholder="flm_..."
+            autocomplete="off"
+            required
+          />
+          <p class="field-help">
+            Use the same router key or a different valid key with at least one
+            connected provider.
+          </p>
+
+          <div id="public-inputs" class="public-inputs"></div>
+          <button id="public-submit" class="primary" type="submit">
+            Generate output
+          </button>
+        </form>
+
+        <section id="public-result" class="public-result" aria-live="polite" hidden>
+          <pre><code id="public-output"></code></pre>
+        </section>
+      </section>
+
+      <section id="prompt-error" class="public-prompt-card error-card" hidden>
+        <p class="eyebrow">Unavailable</p>
+        <h1>Prompt not found</h1>
+        <p id="prompt-error-message" class="lede">
+          Check the prompt link and try again.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>
