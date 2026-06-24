@@ -391,7 +391,7 @@ export async function handleRequest(
             "referrer-policy": "no-referrer",
             "permissions-policy": "camera=(), microphone=(), geolocation=()",
             "content-security-policy":
-              "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com; img-src 'self' data: https:; frame-src https://*.clerk.accounts.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://*.clerk.accounts.dev",
+              "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://*.clerk.accounts.dev https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com; img-src 'self' data: https://img.clerk.com; worker-src 'self' blob:; frame-src 'self' https://*.clerk.accounts.dev https://challenges.cloudflare.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://*.clerk.accounts.dev",
           });
           response.end(asset.body);
           return;
