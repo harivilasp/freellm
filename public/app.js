@@ -184,14 +184,43 @@ async function showSignedInState(clerk) {
   }
 }
 
+async function loadClerkUi(publishableKey) {
+  const encodedDomain = publishableKey.split("_")[2];
+  if (!encodedDomain) throw new Error("Invalid Clerk publishable key");
+  const clerkDomain = atob(encodedDomain).slice(0, -1);
+
+  await new Promise((resolve, reject) => {
+    const existing = document.querySelector("[data-clerk-ui-bundle]");
+    if (existing && window.__internal_ClerkUICtor) {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.dataset.clerkUiBundle = "true";
+    script.src = `https://${clerkDomain}/npm/@clerk/ui@1/dist/ui.browser.js`;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.addEventListener("load", resolve, { once: true });
+    script.addEventListener(
+      "error",
+      () => reject(new Error("Secure sign-in UI could not be loaded.")),
+      { once: true },
+    );
+    document.head.append(script);
+  });
+}
+
 async function initializeAuth() {
   try {
     const configResponse = await fetch("/api/auth/config");
     const config = await configResponse.json();
     if (!configResponse.ok) throw new Error(config.error ?? "Authentication unavailable");
 
+    await loadClerkUi(config.publishableKey);
     const clerk = new Clerk(config.publishableKey);
-    await clerk.load();
+    await clerk.load({
+      ui: { ClerkUI: window.__internal_ClerkUICtor },
+    });
     window.freeLlmClerk = clerk;
     if (clerk.user) {
       await showSignedInState(clerk);
